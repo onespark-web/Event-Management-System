@@ -538,15 +538,17 @@ function updateAuthUI() {
 
     // Enforce UI Permission Visibility
     if (currentUser.role === "student") {
-        // Students: Misuse prevention -> Hide Add New Event and Reset Data
-        openAddModalBtn.style.display = "none";
+        // Students: Can view directory and reserve passes
+        openAddModalBtn.style.display = "inline-flex";
+        openAddModalBtn.title = "Student Mode (View-Only). Click to switch to Organizer.";
         resetDemoBtn.style.display = "none";
         roleNoticeBanner.className = "role-notice-banner student-mode";
         roleBannerIcon.textContent = "🎓";
-        roleBannerText.innerHTML = `<strong>Student Mode Active</strong> (ID: <code>${currentUser.id}</code> &bull; Email: <code>${currentUser.email}</code>) &mdash; Protected View-Only Mode. You can browse schedules, view specifications, and reserve passes. Event modification is strictly restricted.`;
+        roleBannerText.innerHTML = `<strong>Student Mode Active</strong> (ID: <code>${currentUser.id}</code> &bull; Email: <code>${currentUser.email}</code>) &mdash; Protected View-Only Mode. You can browse schedules, view specifications, and reserve passes. Switch to Organizer or Admin to add new events.`;
     } else if (currentUser.role === "organizer") {
         // Organizers: Can add & edit events
         openAddModalBtn.style.display = "inline-flex";
+        openAddModalBtn.title = "Create New Event";
         resetDemoBtn.style.display = "none";
         roleNoticeBanner.className = "role-notice-banner organizer-mode";
         roleBannerIcon.textContent = "📅";
@@ -554,11 +556,21 @@ function updateAuthUI() {
     } else {
         // Admin: Full control
         openAddModalBtn.style.display = "inline-flex";
+        openAddModalBtn.title = "Create New Event";
         resetDemoBtn.style.display = "inline-flex";
         roleNoticeBanner.className = "role-notice-banner admin-mode";
         roleBannerIcon.textContent = "🛡️";
         roleBannerText.innerHTML = `<strong>Administrator Mode</strong> (ID: <code>${currentUser.id}</code> &bull; Email: <code>${currentUser.email}</code>) &mdash; Complete managerial access active with creation, editing, deletion, and system reset privileges.`;
     }
+
+    // Highlight active role pill in profile switcher
+    document.querySelectorAll(".btn-role-pill").forEach(pill => {
+        if (pill.dataset.role === currentUser.role) {
+            pill.classList.add("active");
+        } else {
+            pill.classList.remove("active");
+        }
+    });
 }
 
 function loginUser(userObj) {
@@ -644,8 +656,33 @@ if (logoutBtn) {
     logoutBtn.addEventListener("click", logoutUser);
 }
 
+// 1-Click Role Switcher for Testing & Demo
+window.switchUserRole = function(role) {
+    if (!PRESET_ACCOUNTS[role]) return;
+    playClickSound();
+    currentUser = { ...PRESET_ACCOUNTS[role] };
+    saveCurrentUser(currentUser);
+    updateAuthUI();
+    render();
+    notify(`Switched active session to ${currentUser.roleLabel} (${currentUser.id})!`, "success");
+    if (profileDropdown) profileDropdown.classList.add("hidden");
+    if (profileTriggerBtn) profileTriggerBtn.setAttribute("aria-expanded", "false");
+};
+
 if (bannerSwitchRoleBtn) {
-    bannerSwitchRoleBtn.addEventListener("click", logoutUser);
+    bannerSwitchRoleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (profileDropdown) {
+            const isHidden = profileDropdown.classList.contains("hidden");
+            if (isHidden) {
+                profileDropdown.classList.remove("hidden");
+                if (profileTriggerBtn) profileTriggerBtn.setAttribute("aria-expanded", "true");
+            } else {
+                profileDropdown.classList.add("hidden");
+                if (profileTriggerBtn) profileTriggerBtn.setAttribute("aria-expanded", "false");
+            }
+        }
+    });
 }
 
 // Student Pass Reservation Workflow
@@ -977,8 +1014,20 @@ function hideModal() {
 }
 
 openAddModalBtn.addEventListener("click", () => {
+    playClickSound();
     if (currentUser && currentUser.role === "student") {
-        notify("Access Restricted: Students cannot create new events.", "danger");
+        if (confirm("Notice: Student accounts are restricted to View-Only mode.\n\nWould you like to switch to Faculty Organizer mode now to schedule new campus events?")) {
+            switchUserRole("organizer");
+            setTimeout(() => {
+                editModeFlag.value = "false";
+                modalTitle.textContent = "Add New Event";
+                modalBadge.textContent = "Create";
+                document.getElementById("formEventId").disabled = false;
+                showModal();
+            }, 100);
+        } else {
+            notify("Access Restricted: Switch to Faculty Organizer or Admin to create events.", "info");
+        }
         return;
     }
     editModeFlag.value = "false";
@@ -992,8 +1041,16 @@ closeModalBtn.addEventListener("click", hideModal);
 cancelModalBtn.addEventListener("click", hideModal);
 
 window.openEditModal = function(id) {
+    playClickSound();
     if (currentUser && currentUser.role === "student") {
-        notify("Access Restricted: Students are in read-only mode and cannot edit events.", "danger");
+        if (confirm("Notice: Students are in read-only mode and cannot edit events.\n\nWould you like to switch to Faculty Organizer mode now to edit this event?")) {
+            switchUserRole("organizer");
+            setTimeout(() => {
+                window.openEditModal(id);
+            }, 100);
+        } else {
+            notify("Access Restricted: Students are in read-only mode and cannot edit events.", "danger");
+        }
         return;
     }
 

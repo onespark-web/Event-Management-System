@@ -91,32 +91,53 @@
                         <!-- Floating Profile Card (Consists of ID and Email Address) -->
                         <div id="profileDropdown" class="profile-dropdown hidden">
                             <div class="profile-dropdown-header">
-                                <div class="profile-avatar large" id="dropdownProfileAvatar">&#128100;</div>
+                                <div class="profile-avatar-wrap">
+                                    <div class="profile-avatar large" id="dropdownProfileAvatar">&#128100;</div>
+                                    <span class="profile-status-dot" title="Active Verified Session"></span>
+                                </div>
                                 <div class="profile-dropdown-meta">
                                     <span class="profile-dropdown-name" id="dropdownProfileName">User Profile</span>
                                     <span class="role-pill" id="dropdownRolePill">Active Role</span>
                                 </div>
                             </div>
+
                             <div class="profile-dropdown-body">
                                 <div class="profile-info-item">
-                                    <span class="info-label">User ID</span>
-                                    <span class="info-value" id="profileIdDisplay">--</span>
+                                    <span class="info-label">Institutional ID</span>
+                                    <span class="info-value" id="profileIdDisplay" style="font-family: monospace; font-weight: 700;">--</span>
                                 </div>
                                 <div class="profile-info-item">
                                     <span class="info-label">Email Address</span>
                                     <span class="info-value" id="profileEmailDisplay">--</span>
                                 </div>
                                 <div class="profile-info-item">
-                                    <span class="info-label">Access Level</span>
-                                    <span class="info-value" id="profilePermissionDisplay">--</span>
+                                    <span class="info-label">Active Permissions</span>
+                                    <span class="info-value" id="profilePermissionDisplay" style="font-size: 0.8rem; line-height: 1.35;">--</span>
                                 </div>
                             </div>
-                            <div class="profile-dropdown-footer" style="display: flex; flex-direction: column; gap: 0.5rem;">
+
+                            <!-- 1-Click Interactive Role Switcher Inside Profile -->
+                            <div class="profile-switcher-section">
+                                <div class="profile-switcher-title">⚡ Switch Active Role (1-Click Demo)</div>
+                                <div class="profile-role-buttons">
+                                    <button type="button" class="btn-role-pill" data-role="admin" onclick="switchUserRole('admin')" title="Switch to Campus Admin">
+                                        <span>🛡️</span> Admin
+                                    </button>
+                                    <button type="button" class="btn-role-pill" data-role="organizer" onclick="switchUserRole('organizer')" title="Switch to Event Organizer">
+                                        <span>📅</span> Organizer
+                                    </button>
+                                    <button type="button" class="btn-role-pill" data-role="student" onclick="switchUserRole('student')" title="Switch to Student">
+                                        <span>🎓</span> Student
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="profile-dropdown-footer">
                                 <a href="index.html" class="btn btn-secondary btn-block" style="text-align: center; text-decoration: none; justify-content: center;">
                                     <span>&#127968;</span> Return to Home Page
                                 </a>
-                                <button type="button" id="logoutBtn" class="btn btn-secondary btn-block" style="color: var(--rose);">
-                                    <span>&#128274;</span> Log Out & Exit
+                                <button type="button" id="logoutBtn" class="btn btn-secondary btn-block btn-logout-danger">
+                                    <span>&#128274;</span> Log Out &amp; Exit
                                 </button>
                             </div>
                         </div>
