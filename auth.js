@@ -137,8 +137,76 @@ function getRoleMeta(role, id) {
     }
 }
 
+// Theme Controller
+function initTheme() {
+    const themeBtn = document.getElementById("themeToggleBtn");
+    const storedTheme = localStorage.getItem("eventsphere_theme");
+    const isDark = storedTheme === "dark" || (!storedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    
+    function applyTheme(dark) {
+        if (dark) {
+            document.documentElement.setAttribute("data-theme", "dark");
+            if (themeBtn) {
+                themeBtn.innerHTML = `<span class="theme-icon">☀️</span> <span class="theme-label">Light</span>`;
+                themeBtn.title = "Switch to Light Mode";
+            }
+        } else {
+            document.documentElement.removeAttribute("data-theme");
+            if (themeBtn) {
+                themeBtn.innerHTML = `<span class="theme-icon">🌙</span> <span class="theme-label">Dark</span>`;
+                themeBtn.title = "Switch to Dark Mode";
+            }
+        }
+    }
+
+    applyTheme(isDark);
+
+    if (themeBtn) {
+        themeBtn.addEventListener("click", () => {
+            const currentDark = document.documentElement.getAttribute("data-theme") === "dark";
+            const nextDark = !currentDark;
+            localStorage.setItem("eventsphere_theme", nextDark ? "dark" : "light");
+            applyTheme(nextDark);
+            notify(nextDark ? "Dark mode activated 🌙" : "Light mode activated ☀️", "info");
+        });
+    }
+}
+
+// Countdown Timer Controller
+function initCountdown() {
+    const daysEl = document.getElementById("countdownDays");
+    const hoursEl = document.getElementById("countdownHours");
+    const minsEl = document.getElementById("countdownMins");
+    const secsEl = document.getElementById("countdownSecs");
+    if (!daysEl) return;
+
+    // Target flagship event date (simulate dynamic date: current time + 14 days or fixed target)
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 14);
+    targetDate.setHours(10, 0, 0, 0);
+
+    function update() {
+        const now = new Date();
+        const diff = Math.max(0, targetDate - now);
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+
+        daysEl.textContent = String(days).padStart(2, "0");
+        hoursEl.textContent = String(hours).padStart(2, "0");
+        minsEl.textContent = String(mins).padStart(2, "0");
+        secsEl.textContent = String(secs).padStart(2, "0");
+    }
+
+    update();
+    setInterval(update, 1000);
+}
+
 // DOM Setup on Page Load
 document.addEventListener("DOMContentLoaded", () => {
+    initTheme();
+    initCountdown();
     const tabLoginBtn = document.getElementById("tabLoginBtn");
     const tabSignupBtn = document.getElementById("tabSignupBtn");
     const loginTabPane = document.getElementById("loginTabPane");

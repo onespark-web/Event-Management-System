@@ -8,7 +8,7 @@
     <meta name="author" content="Aalekh Kaushik">
     <title>EventSphere EMS | Dashboard</title>
 
-    <!-- Immediate Authentication Guard -->
+    <!-- Immediate Authentication & Theme Guard -->
     <script>
         (function() {
             try {
@@ -18,6 +18,10 @@
                 }
             } catch (e) {
                 window.location.replace("index.html");
+            }
+            var theme = localStorage.getItem("eventsphere_theme");
+            if (theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+                document.documentElement.setAttribute("data-theme", "dark");
             }
         })();
     </script>
@@ -30,6 +34,13 @@
 </head>
 
 <body>
+
+    <!-- Ambient Glowing Background Orbs -->
+    <div class="ambient-glow-wrap" aria-hidden="true">
+        <div class="ambient-orb orb-1"></div>
+        <div class="ambient-orb orb-2"></div>
+        <div class="ambient-orb orb-3"></div>
+    </div>
 
     <!-- App Wrapper (Dashboard) -->
     <div id="appLayout" class="app-layout">
@@ -50,6 +61,12 @@
                 </div>
 
                 <div class="header-actions">
+                    <button type="button" id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Dark/Light Mode">
+                        <span class="theme-icon">🌙</span> <span class="theme-label">Dark</span>
+                    </button>
+                    <button type="button" id="soundToggleBtn" class="sound-toggle-btn" title="Toggle Sound FX">
+                        <span id="soundIcon">🔔</span>
+                    </button>
                     <button type="button" id="openAddModalBtn" class="btn btn-primary">
                         <span class="btn-icon">+</span> Add New Event
                     </button>
@@ -175,6 +192,20 @@
                         <span id="kpiFreeCount" class="kpi-value">0</span>
                         <span class="kpi-subtext">Zero fee access</span>
                     </div>
+                </div>
+            </section>
+
+            <!-- Event Mix / Category Distribution Analytics Card -->
+            <section class="category-mix-card" aria-label="Event Distribution Analytics">
+                <div class="category-mix-header">
+                    <span>⚡ Department Event Allocation Mix</span>
+                    <span id="mixTotalBadge" style="font-size: 0.75rem; color: var(--text-tertiary);">Calculating...</span>
+                </div>
+                <div class="category-mix-bar" id="categoryMixBar">
+                    <!-- Populated dynamically via script.js -->
+                </div>
+                <div class="category-mix-legend" id="categoryMixLegend">
+                    <!-- Populated dynamically via script.js -->
                 </div>
             </section>
 
@@ -400,6 +431,86 @@
             </div>
             <div class="modal-footer">
                 <button type="button" id="doneDetailBtn" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Digital VIP Boarding Pass Ticket -->
+    <div id="ticketModal" class="modal-overlay hidden" aria-hidden="true" role="dialog">
+        <div class="ticket-modal-card">
+            <div class="ticket-header-strip">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="ticket-hologram-badge">&#10024; Verified Student Pass</div>
+                    <button type="button" id="closeTicketModalBtn" class="btn-close" style="color: #ffffff;" aria-label="Close pass dialog">&times;</button>
+                </div>
+                <h3 class="ticket-title" id="ticketEventName">Event Name</h3>
+                <div class="ticket-sub" id="ticketEventSub">Category &bull; Venue</div>
+            </div>
+
+            <div class="ticket-body">
+                <div class="ticket-info-grid">
+                    <div>
+                        <div class="ticket-field-label">Attendee Name</div>
+                        <div class="ticket-field-val" id="ticketAttendeeName">--</div>
+                    </div>
+                    <div>
+                        <div class="ticket-field-label">Institutional ID</div>
+                        <div class="ticket-field-val" id="ticketAttendeeId">--</div>
+                    </div>
+                    <div>
+                        <div class="ticket-field-label">Event Date &amp; Time</div>
+                        <div class="ticket-field-val" id="ticketDateTime">--</div>
+                    </div>
+                    <div>
+                        <div class="ticket-field-label">Venue Location</div>
+                        <div class="ticket-field-val" id="ticketVenue">--</div>
+                    </div>
+                    <div>
+                        <div class="ticket-field-label">Pass Reference Code</div>
+                        <div class="ticket-field-val" id="ticketPassCode" style="font-family: monospace; color: var(--primary);">--</div>
+                    </div>
+                    <div>
+                        <div class="ticket-field-label">Verification Status</div>
+                        <div class="ticket-field-val" style="color: var(--emerald);">&#9679; CONFIRMED</div>
+                    </div>
+                </div>
+
+                <!-- Perforation Notch Cutouts -->
+                <div class="ticket-perforation-divider"></div>
+
+                <!-- Simulated Barcode & QR Code Section -->
+                <div class="ticket-barcode-section">
+                    <div class="barcode-strip" title="Simulated Security Barcode" aria-hidden="true">
+                        <span class="barcode-line" style="width: 4px;"></span>
+                        <span class="barcode-line" style="width: 2px;"></span>
+                        <span class="barcode-line" style="width: 6px;"></span>
+                        <span class="barcode-line" style="width: 3px;"></span>
+                        <span class="barcode-line" style="width: 1px;"></span>
+                        <span class="barcode-line" style="width: 5px;"></span>
+                        <span class="barcode-line" style="width: 2px;"></span>
+                        <span class="barcode-line" style="width: 7px;"></span>
+                        <span class="barcode-line" style="width: 3px;"></span>
+                        <span class="barcode-line" style="width: 2px;"></span>
+                        <span class="barcode-line" style="width: 5px;"></span>
+                        <span class="barcode-line" style="width: 4px;"></span>
+                        <span class="barcode-line" style="width: 1px;"></span>
+                        <span class="barcode-line" style="width: 6px;"></span>
+                        <span class="barcode-line" style="width: 3px;"></span>
+                        <span class="barcode-line" style="width: 4px;"></span>
+                        <span class="barcode-line" style="width: 2px;"></span>
+                        <span class="barcode-line" style="width: 5px;"></span>
+                    </div>
+                    <div class="ticket-qr-box" title="Scan to verify pass">&#9638;</div>
+                </div>
+            </div>
+
+            <div class="ticket-footer-actions">
+                <button type="button" id="printTicketBtn" class="btn btn-primary">
+                    <span>&#128424;</span> Print / Download Pass
+                </button>
+                <button type="button" id="doneTicketBtn" class="btn btn-secondary">
+                    Done
+                </button>
             </div>
         </div>
     </div>

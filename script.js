@@ -187,6 +187,259 @@ const exportCsvBtn = document.getElementById("exportCsvBtn");
 const resetDemoBtn = document.getElementById("resetDemoBtn");
 const toastBox = document.getElementById("toastNotification");
 
+// Theme & Sound Toggle References
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+const soundToggleBtn = document.getElementById("soundToggleBtn");
+const soundIcon = document.getElementById("soundIcon");
+
+// Digital VIP Boarding Pass Ticket References
+const ticketModal = document.getElementById("ticketModal");
+const closeTicketModalBtn = document.getElementById("closeTicketModalBtn");
+const doneTicketBtn = document.getElementById("doneTicketBtn");
+const printTicketBtn = document.getElementById("printTicketBtn");
+const ticketEventName = document.getElementById("ticketEventName");
+const ticketEventSub = document.getElementById("ticketEventSub");
+const ticketAttendeeName = document.getElementById("ticketAttendeeName");
+const ticketAttendeeId = document.getElementById("ticketAttendeeId");
+const ticketDateTime = document.getElementById("ticketDateTime");
+const ticketVenue = document.getElementById("ticketVenue");
+const ticketPassCode = document.getElementById("ticketPassCode");
+
+// --- Web Audio Synthesizer (Creative Sound Effects) ---
+let soundEnabled = localStorage.getItem("eventsphere_sound") !== "false";
+const audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
+
+function playTone(freq, duration, type = "sine") {
+    if (!soundEnabled || !audioCtx) return;
+    try {
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    } catch (e) {}
+}
+
+function playSuccessChime() {
+    if (!soundEnabled || !audioCtx) return;
+    playTone(523.25, 0.12);
+    setTimeout(() => playTone(659.25, 0.14), 100);
+    setTimeout(() => playTone(783.99, 0.22), 200);
+}
+
+function playClickSound() {
+    playTone(600, 0.04);
+}
+
+// --- Calendar Badge Helper ---
+function renderCalendarBadge(dateStr) {
+    if (!dateStr) return "";
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const parts = dateStr.split("-");
+    if (parts.length < 3) return "";
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const month = months[monthIdx] || "EVT";
+    const day = parts[2];
+    return `
+        <div class="calendar-date-badge" title="Event Date: ${dateStr}">
+            <span class="cal-month">${month}</span>
+            <span class="cal-day">${day}</span>
+        </div>
+    `;
+}
+
+// --- Category Emoji Helper ---
+function getCategoryEmoji(cat) {
+    switch (cat) {
+        case "Technical": return "⚡";
+        case "Hackathon": return "🚀";
+        case "Workshop": return "🛠️";
+        case "Seminar": return "🎤";
+        case "Cultural": return "🎭";
+        case "Sports": return "⚽";
+        default: return "📌";
+    }
+}
+
+// --- Simulated Capacity Fill Rate Helper ---
+function getCapacityFillMeta(evt) {
+    const baseSeats = Number(evt.capacity) || 100;
+    const seed = ((evt.id * 19) % 35) + 55; // 55% - 90%
+    const registeredCount = Math.min(baseSeats, Math.round(baseSeats * (seed / 100)));
+    const pct = Math.round((registeredCount / baseSeats) * 100);
+    let fillClass = "fill-emerald";
+    if (pct >= 85) fillClass = "fill-rose";
+    else if (pct >= 70) fillClass = "fill-amber";
+    return { registeredCount, pct, fillClass };
+}
+
+// --- KPI Smooth Number Animation ---
+function animateValue(elem, start, end, duration = 600) {
+    if (!elem) return;
+    const numEnd = Number(end);
+    if (isNaN(numEnd)) { elem.textContent = end; return; }
+    const range = numEnd - start;
+    if (range === 0) { elem.textContent = numEnd.toLocaleString(); return; }
+    const startTime = performance.now();
+    function step(currentTime) {
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+        const current = Math.floor(progress * range + start);
+        elem.textContent = current.toLocaleString();
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            elem.textContent = numEnd.toLocaleString();
+        }
+    }
+    requestAnimationFrame(step);
+}
+
+// --- Category Distribution Breakdown Mix Updater ---
+function updateCategoryMix() {
+    const bar = document.getElementById("categoryMixBar");
+    const legend = document.getElementById("categoryMixLegend");
+    const badge = document.getElementById("mixTotalBadge");
+    if (!bar || !legend) return;
+
+    if (events.length === 0) {
+        bar.innerHTML = "";
+        legend.innerHTML = "<span>No events to calculate mix.</span>";
+        if (badge) badge.textContent = "0 Events";
+        return;
+    }
+
+    const counts = {};
+    events.forEach(e => {
+        counts[e.category] = (counts[e.category] || 0) + 1;
+    });
+
+    const categoryStyles = {
+        "Technical": { class: "mix-tech", color: "#4f46e5" },
+        "Hackathon": { class: "mix-hack", color: "#10b981" },
+        "Workshop": { class: "mix-work", color: "#f59e0b" },
+        "Seminar": { class: "mix-semi", color: "#a855f7" },
+        "Cultural": { class: "mix-cult", color: "#f43f5e" },
+        "Sports": { class: "mix-spor", color: "#ea580c" }
+    };
+
+    let barHtml = "";
+    let legendHtml = "";
+
+    Object.entries(counts).forEach(([cat, count]) => {
+        const pct = Math.round((count / events.length) * 100);
+        const style = categoryStyles[cat] || { class: "mix-tech", color: "#4f46e5" };
+        barHtml += `<div class="mix-segment ${style.class}" style="width: ${pct}%;" title="${cat}: ${count} events (${pct}%)"></div>`;
+        legendHtml += `
+            <div class="legend-item">
+                <span class="legend-dot" style="background: ${style.color};"></span>
+                <span>${getCategoryEmoji(cat)} ${cat}: <strong>${count}</strong> (${pct}%)</span>
+            </div>
+        `;
+    });
+
+    bar.innerHTML = barHtml;
+    legend.innerHTML = legendHtml;
+    if (badge) badge.textContent = `${events.length} Total Registered`;
+}
+
+// --- Digital VIP Boarding Pass Modal ---
+function hideTicketModal() {
+    if (ticketModal) {
+        ticketModal.classList.add("hidden");
+        ticketModal.setAttribute("aria-hidden", "true");
+    }
+}
+
+window.openTicketModal = function(id) {
+    const target = events.find(e => e.id === id);
+    if (!target || !currentUser) return;
+
+    if (ticketEventName) ticketEventName.textContent = target.name;
+    if (ticketEventSub) ticketEventSub.textContent = `${target.category} • ${target.venue} • Pass Type: ${target.regType}`;
+    if (ticketAttendeeName) ticketAttendeeName.textContent = currentUser.name || "Student Attendee";
+    if (ticketAttendeeId) ticketAttendeeId.textContent = `${currentUser.id} (${currentUser.email || "student.cse@mits.ac.in"})`;
+    if (ticketDateTime) ticketDateTime.textContent = `${target.date} at ${formatTime(target.time)}`;
+    if (ticketVenue) ticketVenue.textContent = target.venue;
+
+    const passCode = `MITS-2026-${target.id}-${currentUser.id.replace(/[^A-Z0-9]/gi, "")}`;
+    if (ticketPassCode) ticketPassCode.textContent = passCode;
+
+    playSuccessChime();
+
+    if (ticketModal) {
+        ticketModal.classList.remove("hidden");
+        ticketModal.setAttribute("aria-hidden", "false");
+    }
+};
+
+if (closeTicketModalBtn) closeTicketModalBtn.addEventListener("click", hideTicketModal);
+if (doneTicketBtn) doneTicketBtn.addEventListener("click", hideTicketModal);
+if (printTicketBtn) {
+    printTicketBtn.addEventListener("click", () => {
+        window.print();
+    });
+}
+
+// --- Theme & Sound Management on Dashboard ---
+function applyDashboardTheme(dark) {
+    if (dark) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        if (themeToggleBtn) {
+            themeToggleBtn.innerHTML = `<span class="theme-icon">☀️</span> <span class="theme-label">Light</span>`;
+            themeToggleBtn.title = "Switch to Light Mode";
+        }
+    } else {
+        document.documentElement.removeAttribute("data-theme");
+        if (themeToggleBtn) {
+            themeToggleBtn.innerHTML = `<span class="theme-icon">🌙</span> <span class="theme-label">Dark</span>`;
+            themeToggleBtn.title = "Switch to Dark Mode";
+        }
+    }
+}
+
+function updateSoundIcon() {
+    if (soundIcon) {
+        soundIcon.textContent = soundEnabled ? "🔔" : "🔕";
+        if (soundToggleBtn) {
+            soundToggleBtn.title = soundEnabled ? "Sound Effects: ON (Click to mute)" : "Sound Effects: OFF (Click to unmute)";
+        }
+    }
+}
+
+function initDashboardTheme() {
+    const storedTheme = localStorage.getItem("eventsphere_theme");
+    const isDark = storedTheme === "dark" || (!storedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    applyDashboardTheme(isDark);
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", () => {
+            playClickSound();
+            const currentDark = document.documentElement.getAttribute("data-theme") === "dark";
+            const nextDark = !currentDark;
+            localStorage.setItem("eventsphere_theme", nextDark ? "dark" : "light");
+            applyDashboardTheme(nextDark);
+            notify(nextDark ? "Dark mode activated 🌙" : "Light mode activated ☀️", "info");
+        });
+    }
+
+    if (soundToggleBtn) {
+        updateSoundIcon();
+        soundToggleBtn.addEventListener("click", () => {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem("eventsphere_sound", soundEnabled ? "true" : "false");
+            updateSoundIcon();
+            if (soundEnabled) playClickSound();
+            notify(soundEnabled ? "Audio effects enabled 🔔" : "Audio muted 🔕", "info");
+        });
+    }
+}
+
 // --- Persistence Helpers ---
 function loadEvents() {
     try {
@@ -410,22 +663,35 @@ window.toggleRegistration = function(id) {
         registeredEventIds.push(id);
         saveRegistrations();
         render();
-        notify(`Pass reserved successfully for "${eventName}"!`, "success");
+        notify(`Pass reserved successfully for "${eventName}"! Opening digital ticket...`, "success");
+        setTimeout(() => {
+            window.openTicketModal(id);
+        }, 350);
     } else {
         registeredEventIds.splice(idx, 1);
         saveRegistrations();
         render();
+        playClickSound();
         notify(`Registration cancelled for "${eventName}".`, "info");
     }
 };
 
-// --- KPI Updates ---
+// --- KPI Updates with Animation & Mix Chart ---
+let lastKpis = { total: 0, cap: 0, tech: 0, free: 0 };
 function updateKpis() {
-    kpiTotalEvents.textContent = events.length;
+    const totalCount = events.length;
     const totalCap = events.reduce((sum, e) => sum + Number(e.capacity || 0), 0);
-    kpiTotalCapacity.textContent = totalCap.toLocaleString();
-    kpiTechCount.textContent = events.filter(e => e.category === "Technical" || e.category === "Hackathon").length;
-    kpiFreeCount.textContent = events.filter(e => e.regType === "Free").length;
+    const techCount = events.filter(e => e.category === "Technical" || e.category === "Hackathon").length;
+    const freeCount = events.filter(e => e.regType === "Free").length;
+
+    animateValue(kpiTotalEvents, lastKpis.total, totalCount, 400);
+    animateValue(kpiTotalCapacity, lastKpis.cap, totalCap, 400);
+    animateValue(kpiTechCount, lastKpis.tech, techCount, 400);
+    animateValue(kpiFreeCount, lastKpis.free, freeCount, 400);
+
+    lastKpis = { total: totalCount, cap: totalCap, tech: techCount, free: freeCount };
+
+    updateCategoryMix();
 }
 
 // --- Category Badge Mapper ---
@@ -516,6 +782,9 @@ function render() {
             const tr = document.createElement("tr");
             const catBadge = getCategoryClass(evt.category);
             const passBadge = evt.regType === "Free" ? "pass-free" : "pass-paid";
+            const calBadge = renderCalendarBadge(evt.date);
+            const fillMeta = getCapacityFillMeta(evt);
+            const catIcon = getCategoryEmoji(evt.category);
 
             // Determine action buttons based on user role
             let actionButtonsHTML = "";
@@ -523,8 +792,9 @@ function render() {
                 // Students only see View Details (misuse protected - no edit or delete)
                 const isReg = registeredEventIds.includes(evt.id);
                 actionButtonsHTML = `
-                    <button type="button" class="btn-sm btn-view" onclick="openDetails(${evt.id})">View Details</button>
+                    <button type="button" class="btn-sm btn-view" onclick="openDetails(${evt.id})" title="View Specifications">Details</button>
                     <button type="button" class="btn-register-action ${isReg ? 'registered' : ''}" onclick="toggleRegistration(${evt.id})">${isReg ? '&#10004; Registered' : 'Reserve Pass'}</button>
+                    ${isReg ? `<button type="button" class="btn-sm" onclick="openTicketModal(${evt.id})" title="View Digital Pass Ticket" style="background: var(--purple-light); color: var(--purple); font-weight: 700;">🎟️ Pass</button>` : ''}
                 `;
             } else if (isOrganizer) {
                 // Organizer can View and Edit
@@ -547,10 +817,25 @@ function render() {
                     <strong>${escapeHTML(evt.name)}</strong>
                     <small>${escapeHTML(evt.organizer || "MITS Faculty Coordinator")}</small>
                 </td>
-                <td><span class="badge-pill ${catBadge}">${evt.category}</span></td>
-                <td>${evt.date} &bull; ${formatTime(evt.time)}</td>
+                <td><span class="badge-pill ${catBadge}">${catIcon} ${evt.category}</span></td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.65rem;">
+                        ${calBadge}
+                        <div>
+                            <div><strong>${evt.date}</strong></div>
+                            <small style="color: var(--text-tertiary);">${formatTime(evt.time)}</small>
+                        </div>
+                    </div>
+                </td>
                 <td>${escapeHTML(evt.venue)}</td>
-                <td><strong>${evt.capacity}</strong> Seats</td>
+                <td>
+                    <div>
+                        <strong>${evt.capacity}</strong> Seats
+                        <div class="capacity-track" style="height: 4px; width: 68px; margin-top: 4px;" title="${fillMeta.registeredCount} booked (${fillMeta.pct}%)">
+                            <div class="capacity-fill ${fillMeta.fillClass}" style="width: ${fillMeta.pct}%;"></div>
+                        </div>
+                    </div>
+                </td>
                 <td><span class="badge-pill ${passBadge}">${evt.regType}</span></td>
                 <td class="actions-cell">
                     ${actionButtonsHTML}
@@ -564,7 +849,7 @@ function render() {
     cardViewSection.innerHTML = "";
     if (list.length === 0) {
         cardViewSection.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-tertiary); background: #ffffff; border-radius: 12px;">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-tertiary); background: var(--bg-surface); border-radius: 12px; border: 1px solid var(--border);">
                 No events found matching your criteria.
             </div>
         `;
@@ -574,14 +859,18 @@ function render() {
             card.className = "event-card";
             const catBadge = getCategoryClass(evt.category);
             const passBadge = evt.regType === "Free" ? "pass-free" : "pass-paid";
+            const calBadge = renderCalendarBadge(evt.date);
+            const fillMeta = getCapacityFillMeta(evt);
+            const catIcon = getCategoryEmoji(evt.category);
 
             let cardActionButtonsHTML = "";
             if (isStudent) {
                 // Students only see Details & Register (misuse protected)
                 const isReg = registeredEventIds.includes(evt.id);
                 cardActionButtonsHTML = `
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="openDetails(${evt.id})">View Details</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="openDetails(${evt.id})">Details</button>
                     <button type="button" class="btn-register-action ${isReg ? 'registered' : ''}" onclick="toggleRegistration(${evt.id})">${isReg ? '&#10004; Registered' : 'Reserve Pass'}</button>
+                    ${isReg ? `<button type="button" class="btn btn-sm" onclick="openTicketModal(${evt.id})" title="View Digital Pass Ticket" style="background: linear-gradient(135deg, var(--primary), var(--purple)); color: #fff; font-weight: 700;">🎟️ Pass</button>` : ''}
                 `;
             } else if (isOrganizer) {
                 cardActionButtonsHTML = `
@@ -599,15 +888,29 @@ function render() {
             card.innerHTML = `
                 <div>
                     <div class="card-top">
-                        <span class="card-id">#${evt.id}</span>
-                        <span class="badge-pill ${catBadge}">${evt.category}</span>
+                        <div style="display: flex; align-items: center; gap: 0.65rem;">
+                            ${calBadge}
+                            <div>
+                                <span class="card-id">#${evt.id}</span>
+                                <h4 class="card-title" style="margin: 0; font-size: 1.05rem;">${escapeHTML(evt.name)}</h4>
+                            </div>
+                        </div>
+                        <span class="badge-pill ${catBadge}">${catIcon} ${evt.category}</span>
                     </div>
-                    <h4 class="card-title">${escapeHTML(evt.name)}</h4>
-                    <p class="card-desc">${escapeHTML(evt.desc || "No description provided.")}</p>
+                    <p class="card-desc" style="margin-top: 0.65rem;">${escapeHTML(evt.desc || "No description provided.")}</p>
                     <div class="card-meta-list">
-                        <div>&#128197; <strong>Date:</strong> ${evt.date} (${formatTime(evt.time)})</div>
+                        <div>&#128197; <strong>Schedule:</strong> ${evt.date} (${formatTime(evt.time)})</div>
                         <div>&#128205; <strong>Venue:</strong> ${escapeHTML(evt.venue)}</div>
-                        <div>&#128101; <strong>Capacity:</strong> ${evt.capacity} Seats &bull; <span class="badge-pill ${passBadge}">${evt.regType}</span></div>
+                        <div>&#127891; <strong>Organizer:</strong> ${escapeHTML(evt.organizer || "MITS CSE Department")}</div>
+                        <div class="capacity-bar-wrap">
+                            <div class="capacity-bar-header">
+                                <span>Capacity: <strong>${evt.capacity} Seats</strong> (${fillMeta.registeredCount} booked)</span>
+                                <span style="font-weight: 700; color: var(--text-primary);">${fillMeta.pct}% Full</span>
+                            </div>
+                            <div class="capacity-track">
+                                <div class="capacity-fill ${fillMeta.fillClass}" style="width: ${fillMeta.pct}%;"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="card-actions">
@@ -623,6 +926,7 @@ function render() {
 
 // --- View Switcher ---
 tableViewBtn.addEventListener("click", () => {
+    playClickSound();
     currentView = "table";
     tableViewBtn.classList.add("active");
     cardViewBtn.classList.remove("active");
@@ -631,6 +935,7 @@ tableViewBtn.addEventListener("click", () => {
 });
 
 cardViewBtn.addEventListener("click", () => {
+    playClickSound();
     currentView = "cards";
     cardViewBtn.classList.add("active");
     tableViewBtn.classList.remove("active");
@@ -647,6 +952,7 @@ liveSearchInput.addEventListener("input", (e) => {
 categoryTabs.addEventListener("click", (e) => {
     const btn = e.target.closest(".tab-btn");
     if (!btn) return;
+    playClickSound();
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     currentCategory = btn.dataset.cat;
@@ -905,12 +1211,14 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
         hideModal();
         hideDetailsModal();
+        hideTicketModal();
         if (profileDropdown) profileDropdown.classList.add("hidden");
     }
 });
 
 // --- Initialize App ---
 document.addEventListener("DOMContentLoaded", () => {
+    initDashboardTheme();
     // If no user is logged in, default to null so the Login Homepage is shown
     updateAuthUI();
     render();

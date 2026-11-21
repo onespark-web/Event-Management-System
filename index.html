@@ -11,10 +11,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Immediate Theme & Aesthetics Guard -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem("eventsphere_theme");
+            if (theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+
+    <!-- Ambient Glowing Background Orbs -->
+    <div class="ambient-glow-wrap" aria-hidden="true">
+        <div class="ambient-orb orb-1"></div>
+        <div class="ambient-orb orb-2"></div>
+        <div class="ambient-orb orb-3"></div>
+    </div>
 
     <!-- Home Page Navigation Bar -->
     <header class="home-nav">
@@ -35,13 +51,42 @@
                 <li><a href="#featuresSection">Platform Features</a></li>
             </ul>
 
-            <div>
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <button type="button" id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Dark/Light Mode">
+                    <span class="theme-icon">🌙</span> <span class="theme-label">Dark</span>
+                </button>
                 <a href="#authSection" class="btn btn-primary" style="text-decoration: none;">
                     <span>&#128274;</span> Sign In &bull; Portal &darr;
                 </a>
             </div>
         </div>
     </header>
+
+    <!-- Campus Live Announcement Marquee Ticker -->
+    <div class="campus-ticker-wrap">
+        <div class="ticker-badge">
+            <span class="ticker-pulse"></span>
+            <span>Live Campus Desk</span>
+        </div>
+        <div class="ticker-track">
+            <div class="ticker-item">🔥 <strong>Flagship Announcement:</strong> Tech Fest 2026: Zenith registrations are live!</div>
+            <span class="ticker-sep">&bull;</span>
+            <div class="ticker-item">💡 <strong>MITS ACM Chapter:</strong> CodeCraft Inter-College Hackathon problem statements released</div>
+            <span class="ticker-sep">&bull;</span>
+            <div class="ticker-item">🎟️ <strong>Student Access:</strong> Reserve your verified digital entry pass directly via Portal</div>
+            <span class="ticker-sep">&bull;</span>
+            <div class="ticker-item">⚡ <strong>Department of CSE:</strong> Hands-on Web Dev Bootcamp scheduled in Lab 3</div>
+            <span class="ticker-sep">&bull;</span>
+            <div class="ticker-item">🛡️ <strong>Misuse Protected:</strong> Secure Role-Based Access for Students &amp; Faculty</div>
+            <!-- Infinite loop clone -->
+            <span class="ticker-sep">&bull;</span>
+            <div class="ticker-item">🔥 <strong>Flagship Announcement:</strong> Tech Fest 2026: Zenith registrations are live!</div>
+            <span class="ticker-sep">&bull;</span>
+            <div class="ticker-item">💡 <strong>MITS ACM Chapter:</strong> CodeCraft Inter-College Hackathon problem statements released</div>
+            <span class="ticker-sep">&bull;</span>
+            <div class="ticker-item">🎟️ <strong>Student Access:</strong> Reserve your verified digital entry pass directly via Portal</div>
+        </div>
+    </div>
 
     <!-- Main Home Page Container -->
     <main class="login-screen" style="padding-top: 2rem;">
@@ -52,6 +97,38 @@
                 <div class="login-brand-badge">&#10024; Madhav Institute of Technology &amp; Science &bull; CSE Department</div>
                 <h1>Welcome to <span>EventSphere</span></h1>
                 <p>Campus Event Management &amp; Scheduling Portal featuring Role-Based Access Control, Student Misuse Protection, and Real-Time Pass Reservation.</p>
+
+                <!-- Live Event Countdown Card -->
+                <div class="event-countdown-card">
+                    <div class="countdown-header">
+                        <div class="countdown-title-wrap">
+                            <span style="font-size: 1.25rem;">⚡</span>
+                            <h4>Next Flagship Campus Event</h4>
+                        </div>
+                        <span class="countdown-tag">&#9679; Opening Keynote</span>
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; text-align: left;">
+                        <strong>Tech Fest 2026: Zenith</strong> &mdash; Seminar Hall 1 &bull; CSE Department
+                    </div>
+                    <div class="countdown-timer-grid">
+                        <div class="countdown-block">
+                            <span id="countdownDays" class="countdown-num">14</span>
+                            <span class="countdown-label">Days</span>
+                        </div>
+                        <div class="countdown-block">
+                            <span id="countdownHours" class="countdown-num">08</span>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <div class="countdown-block">
+                            <span id="countdownMins" class="countdown-num">32</span>
+                            <span class="countdown-label">Mins</span>
+                        </div>
+                        <div class="countdown-block">
+                            <span id="countdownSecs" class="countdown-num">45</span>
+                            <span class="countdown-label">Secs</span>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Returning User / Active Session Banner (Shown if already signed in) -->
