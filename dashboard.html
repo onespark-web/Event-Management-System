@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EventSphere - Enterprise Campus Event Management System by Aalekh Kaushik, MITS Gwalior.">
+    <meta name="author" content="Aalekh Kaushik">
+    <title>EventSphere EMS | Dashboard</title>
+
+    <!-- Immediate Authentication Guard -->
+    <script>
+        (function() {
+            try {
+                var authUser = localStorage.getItem("eventsphere_auth_user");
+                if (!authUser) {
+                    window.location.replace("index.html");
+                }
+            } catch (e) {
+                window.location.replace("index.html");
+            }
+        })();
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- App Wrapper (Dashboard) -->
+    <div id="appLayout" class="app-layout">
+
+        <!-- Top Header Navigation -->
+        <header class="app-header">
+            <div class="header-inner">
+                <div class="brand-group">
+                    <a href="dashboard.html" style="text-decoration: none; display: flex; align-items: center; gap: 0.85rem; color: inherit;">
+                        <div class="brand-logo">
+                            <span class="logo-icon">&#10024;</span>
+                        </div>
+                        <div>
+                            <div class="brand-badge">Final Outcome &bull; Production Release</div>
+                            <h1 class="brand-title">EventSphere EMS</h1>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="header-actions">
+                    <button type="button" id="openAddModalBtn" class="btn btn-primary">
+                        <span class="btn-icon">+</span> Add New Event
+                    </button>
+                    <button type="button" id="exportCsvBtn" class="btn btn-secondary" title="Export to CSV">
+                        <span>&#128190;</span> Export Data
+                    </button>
+                    <button type="button" id="resetDemoBtn" class="btn btn-ghost" title="Reset sample events">
+                        <span>&#8634;</span> Reset
+                    </button>
+
+                    <!-- Profile Icon & Popover Menu (Shows User ID & Email Address) -->
+                    <div class="profile-menu-container" id="profileMenuContainer">
+                        <button type="button" id="profileTriggerBtn" class="profile-trigger-btn" aria-haspopup="true" aria-expanded="false" title="Click to view profile info">
+                            <div class="profile-avatar" id="headerProfileAvatar">&#128100;</div>
+                            <div class="profile-trigger-info">
+                                <span class="profile-trigger-id" id="headerProfileId">ID: ...</span>
+                                <span class="profile-trigger-role" id="headerProfileRole">Role</span>
+                            </div>
+                            <span class="profile-caret">&#9662;</span>
+                        </button>
+
+                        <!-- Floating Profile Card (Consists of ID and Email Address) -->
+                        <div id="profileDropdown" class="profile-dropdown hidden">
+                            <div class="profile-dropdown-header">
+                                <div class="profile-avatar large" id="dropdownProfileAvatar">&#128100;</div>
+                                <div class="profile-dropdown-meta">
+                                    <span class="profile-dropdown-name" id="dropdownProfileName">User Profile</span>
+                                    <span class="role-pill" id="dropdownRolePill">Active Role</span>
+                                </div>
+                            </div>
+                            <div class="profile-dropdown-body">
+                                <div class="profile-info-item">
+                                    <span class="info-label">User ID</span>
+                                    <span class="info-value" id="profileIdDisplay">--</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="info-label">Email Address</span>
+                                    <span class="info-value" id="profileEmailDisplay">--</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <span class="info-label">Access Level</span>
+                                    <span class="info-value" id="profilePermissionDisplay">--</span>
+                                </div>
+                            </div>
+                            <div class="profile-dropdown-footer" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <a href="index.html" class="btn btn-secondary btn-block" style="text-align: center; text-decoration: none; justify-content: center;">
+                                    <span>&#127968;</span> Return to Home Page
+                                </a>
+                                <button type="button" id="logoutBtn" class="btn btn-secondary btn-block" style="color: var(--rose);">
+                                    <span>&#128274;</span> Log Out & Exit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="main-content">
+
+            <!-- Dynamic Role Notice Banner -->
+            <div id="roleNoticeBanner" class="role-notice-banner student-mode">
+                <div class="role-notice-content">
+                    <span id="roleBannerIcon" style="font-size: 1.3rem;">&#127891;</span>
+                    <span id="roleBannerText">Logged in as Student. View-only mode active.</span>
+                </div>
+                <button type="button" id="bannerSwitchRoleBtn" class="role-switch-link">Switch Role / Log Out &rarr;</button>
+            </div>
+
+            <!-- Hero Banner & Overview -->
+            <section class="hero-banner">
+                <div class="hero-text">
+                    <h2>Campus Event Hub</h2>
+                    <p>Madhav Institute of Technology & Science, Gwalior &bull; Department of Computer Science & Engineering</p>
+                </div>
+                <div class="academic-tag">
+                    <span>Lead Developer: <strong>Aalekh Kaushik</strong></span>
+                </div>
+            </section>
+
+            <!-- Metrics / KPI Cards -->
+            <section class="kpi-grid" aria-label="Key Event Metrics">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Total Scheduled</span>
+                        <span class="kpi-icon kpi-blue">&#128197;</span>
+                    </div>
+                    <div class="kpi-body">
+                        <span id="kpiTotalEvents" class="kpi-value">0</span>
+                        <span class="kpi-subtext">Active listings</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Total Capacity</span>
+                        <span class="kpi-icon kpi-purple">&#128101;</span>
+                    </div>
+                    <div class="kpi-body">
+                        <span id="kpiTotalCapacity" class="kpi-value">0</span>
+                        <span class="kpi-subtext">Seats across venues</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Technical & Hackathons</span>
+                        <span class="kpi-icon kpi-emerald">&#9889;</span>
+                    </div>
+                    <div class="kpi-body">
+                        <span id="kpiTechCount" class="kpi-value">0</span>
+                        <span class="kpi-subtext">Innovation tracks</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Free Registration</span>
+                        <span class="kpi-icon kpi-amber">&#127887;</span>
+                    </div>
+                    <div class="kpi-body">
+                        <span id="kpiFreeCount" class="kpi-value">0</span>
+                        <span class="kpi-subtext">Zero fee access</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interactive Control Bar -->
+            <section class="controls-card">
+                <div class="search-box">
+                    <span class="search-icon">&#128269;</span>
+                    <input type="search" id="liveSearchInput" placeholder="Search by event title, venue, or coordinator..." aria-label="Search events">
+                </div>
+
+                <div class="filter-group">
+                    <div class="category-tabs" id="categoryTabs">
+                        <button type="button" class="tab-btn active" data-cat="all">All</button>
+                        <button type="button" class="tab-btn" data-cat="Technical">Technical</button>
+                        <button type="button" class="tab-btn" data-cat="Hackathon">Hackathons</button>
+                        <button type="button" class="tab-btn" data-cat="Workshop">Workshops</button>
+                        <button type="button" class="tab-btn" data-cat="Seminar">Seminars</button>
+                        <button type="button" class="tab-btn" data-cat="Cultural">Cultural</button>
+                    </div>
+
+                    <div class="sort-wrapper">
+                        <label for="sortBySelect" class="sr-only">Sort By</label>
+                        <select id="sortBySelect" class="select-styled">
+                            <option value="date-asc">Date: Soonest First</option>
+                            <option value="date-desc">Date: Latest First</option>
+                            <option value="capacity-desc">Capacity: High to Low</option>
+                            <option value="name-asc">Name: A to Z</option>
+                        </select>
+                    </div>
+
+                    <div class="view-toggles">
+                        <button type="button" id="tableViewBtn" class="toggle-btn active" title="Table View">&#9776;</button>
+                        <button type="button" id="cardViewBtn" class="toggle-btn" title="Grid Card View">&#9638;</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Table View Container -->
+            <section id="tableViewSection" class="directory-card">
+                <div class="directory-header">
+                    <div>
+                        <h3 class="directory-title">Event Directory</h3>
+                        <p id="directorySubtitle" class="directory-subtitle">Displaying events</p>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Event Details</th>
+                                <th scope="col">Category</th>
+                                <th scope="col">Schedule</th>
+                                <th scope="col">Venue</th>
+                                <th scope="col">Capacity</th>
+                                <th scope="col">Pass Type</th>
+                                <th scope="col" class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventsTableBody">
+                            <!-- Populated dynamically via script.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Card Grid View Container (Alternative View) -->
+            <section id="cardViewSection" class="cards-grid hidden">
+                <!-- Dynamically generated event cards -->
+            </section>
+
+            <!-- Guidelines and FAQ Section -->
+            <section class="info-accordion-card">
+                <div class="accordion-header">
+                    <h3>Administrative Notes & FAQs</h3>
+                    <span class="badge-pill">Campus Policies</span>
+                </div>
+
+                <div class="accordion-list">
+                    <details class="faq-accordion">
+                        <summary>How are events persisted in this portal?</summary>
+                        <div class="faq-content">
+                            <p>All events are saved locally inside your browser's persistent storage (<code>localStorage</code>). Edits, removals, and additions survive page refreshes and browser restarts.</p>
+                        </div>
+                    </details>
+                    <details class="faq-accordion">
+                        <summary>Can data be exported for institutional reporting?</summary>
+                        <div class="faq-content">
+                            <p>Yes, clicking the <strong>Export Data</strong> button in the top navigation automatically generates a ready-to-use <code>.csv</code> spreadsheet containing all registered events.</p>
+                        </div>
+                    </details>
+                    <details class="faq-accordion">
+                        <summary>What are the validation requirements for new events?</summary>
+                        <div class="faq-content">
+                            <p>Event IDs must be unique numerical identifiers (100-999). Titles, venues, dates, and capacities are required to ensure data integrity.</p>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <p class="footer-title">EventSphere &bull; Final Outcome Web Project</p>
+                    <p class="footer-sub">Designed & Programmed by <strong>Aalekh Kaushik</strong> (B.Tech CSE)</p>
+                    <p class="footer-sub">Madhav Institute of Technology & Science (MITS), Gwalior</p>
+                </div>
+                <div class="footer-right">
+                    <p>&copy; 2026 MITS Gwalior. Built with HTML5, CSS3, & Modern Vanilla JS.</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Modal: Add / Edit Event -->
+    <div id="eventModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div>
+                    <span id="modalBadge" class="badge-pill">Create</span>
+                    <h3 id="modalTitle">Add New Event</h3>
+                </div>
+                <button type="button" id="closeModalBtn" class="btn-close" aria-label="Close dialog">&times;</button>
+            </div>
+
+            <form id="eventModalForm" class="modal-form">
+                <input type="hidden" id="editModeFlag" value="false">
+
+                <div class="modal-form-grid">
+                    <div class="field-group">
+                        <label for="formEventId">Event ID <span class="req">*</span></label>
+                        <input type="number" id="formEventId" min="100" max="999" placeholder="e.g. 104" required>
+                        <small class="field-hint">Unique numerical identifier</small>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="formEventName">Event Name <span class="req">*</span></label>
+                        <input type="text" id="formEventName" placeholder="e.g. Quantum Computing Seminar" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="formEventCategory">Category <span class="req">*</span></label>
+                        <select id="formEventCategory" required>
+                            <option value="Technical">Technical</option>
+                            <option value="Hackathon">Hackathon</option>
+                            <option value="Workshop">Workshop</option>
+                            <option value="Seminar">Seminar</option>
+                            <option value="Cultural">Cultural</option>
+                            <option value="Sports">Sports</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="formEventDate">Event Date <span class="req">*</span></label>
+                        <input type="date" id="formEventDate" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="formEventTime">Start Time <span class="req">*</span></label>
+                        <input type="time" id="formEventTime" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="formEventVenue">Venue Location <span class="req">*</span></label>
+                        <input type="text" id="formEventVenue" placeholder="e.g. Auditorium / Lab 2" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="formEventCapacity">Capacity (Seats) <span class="req">*</span></label>
+                        <input type="number" id="formEventCapacity" min="1" max="2000" placeholder="e.g. 150" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="formEventOrganizer">Organizer / Department</label>
+                        <input type="text" id="formEventOrganizer" placeholder="e.g. Dept of CSE">
+                    </div>
+
+                    <div class="field-group span-2">
+                        <label for="formEventDesc">Description & Highlights</label>
+                        <textarea id="formEventDesc" rows="3" placeholder="Brief outline, prerequisites, eligibility or rules..."></textarea>
+                    </div>
+
+                    <div class="field-group span-2">
+                        <span class="field-label">Registration Pass Type:</span>
+                        <div class="radio-chips">
+                            <label class="radio-chip">
+                                <input type="radio" name="formRegType" value="Free" checked>
+                                <span>Free Access</span>
+                            </label>
+                            <label class="radio-chip">
+                                <input type="radio" name="formRegType" value="Paid">
+                                <span>Paid Ticket</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" id="saveEventBtn" class="btn btn-primary">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: View Event Details -->
+    <div id="detailsModal" class="modal-overlay hidden" aria-hidden="true" role="dialog">
+        <div class="modal-container details-card">
+            <div class="modal-header">
+                <div>
+                    <span id="detailBadge" class="badge-pill">Details</span>
+                    <h3 id="detailTitle">Event Overview</h3>
+                </div>
+                <button type="button" id="closeDetailModalBtn" class="btn-close">&times;</button>
+            </div>
+            <div class="details-body" id="detailContent">
+                <!-- Injected via script.js -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="doneDetailBtn" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastNotification" class="toast-box">Notification message</div>
+
+    <!-- Application Script -->
+    <script src="script.js"></script>
+</body>
+
+</html>

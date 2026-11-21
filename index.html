@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EventSphere - Enterprise Campus Event Management System by Aalekh Kaushik, MITS Gwalior.">
+    <meta name="author" content="Aalekh Kaushik">
+    <title>EventSphere | Campus Event Management Portal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Home Page Navigation Bar -->
+    <header class="home-nav">
+        <div class="home-nav-inner">
+            <div class="brand-group">
+                <div class="brand-logo">
+                    <span class="logo-icon">&#10024;</span>
+                </div>
+                <div>
+                    <div class="brand-badge">MITS Gwalior &bull; Department of CSE</div>
+                    <h1 class="brand-title" style="font-size: 1.25rem;">EventSphere</h1>
+                </div>
+            </div>
+
+            <ul class="home-nav-links">
+                <li><a href="#authSection">Portal Login</a></li>
+                <li><a href="#rolesSection">Account Roles</a></li>
+                <li><a href="#featuresSection">Platform Features</a></li>
+            </ul>
+
+            <div>
+                <a href="#authSection" class="btn btn-primary" style="text-decoration: none;">
+                    <span>&#128274;</span> Sign In &bull; Portal &darr;
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Home Page Container -->
+    <main class="login-screen" style="padding-top: 2rem;">
+        <div class="login-container">
+
+            <!-- Hero Section -->
+            <section class="login-hero">
+                <div class="login-brand-badge">&#10024; Madhav Institute of Technology &amp; Science &bull; CSE Department</div>
+                <h1>Welcome to <span>EventSphere</span></h1>
+                <p>Campus Event Management &amp; Scheduling Portal featuring Role-Based Access Control, Student Misuse Protection, and Real-Time Pass Reservation.</p>
+            </section>
+
+            <!-- Returning User / Active Session Banner (Shown if already signed in) -->
+            <div id="activeSessionCard" class="active-session-card hidden">
+                <div class="active-session-info">
+                    <div class="active-session-avatar" id="activeSessionAvatar">ST</div>
+                    <div>
+                        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); font-weight: 700;">Active Session Detected</div>
+                        <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">
+                            Welcome back, <span id="activeSessionName">User</span>!
+                        </h4>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                            Role: <strong id="activeSessionRole">Student</strong> &bull; ID: <code id="activeSessionId">STU-303</code>
+                        </div>
+                    </div>
+                </div>
+                <div class="active-session-actions">
+                    <a href="dashboard.html" class="btn btn-primary">
+                        Enter Dashboard &rarr;
+                    </a>
+                    <button type="button" id="homeLogoutBtn" class="btn btn-secondary" title="Sign out this account">
+                        Log Out
+                    </button>
+                </div>
+            </div>
+
+            <!-- Student Misuse Protection Callout Banner -->
+            <div class="security-callout-banner">
+                <div class="security-callout-icon">&#128274;</div>
+                <div class="security-callout-text">
+                    <h4>Student Misuse Protection Active</h4>
+                    <p>Students and attendees access the portal in <strong>Strict View-Only Mode</strong>. They can explore the schedule, search venues, inspect specifications, and reserve event passes, but <strong>cannot add, edit, or delete</strong> event information. Only authorized Faculty Organizers and Campus Administrators have modification privileges.</p>
+                </div>
+            </div>
+
+            <!-- Main Tabbed Authentication Box -->
+            <section id="authSection" class="auth-box-container">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem;">
+                        &#128272; Institutional Access Portal
+                    </h3>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                        Enter your institutional ID and password, or create a new student / faculty account to continue to the dashboard.
+                    </p>
+                </div>
+
+                <!-- Navigation Tabs: Log In vs Sign Up -->
+                <div class="auth-tabs" role="tablist">
+                    <button type="button" id="tabLoginBtn" class="auth-tab-btn active" role="tab" aria-selected="true">
+                        <span>&#128273;</span> Log In to Account
+                    </button>
+                    <button type="button" id="tabSignupBtn" class="auth-tab-btn" role="tab" aria-selected="false">
+                        <span>&#128221;</span> Create Account / Sign Up
+                    </button>
+                </div>
+
+                <!-- TAB PANE 1: Log In Form -->
+                <div id="loginTabPane" class="auth-pane">
+                    <form id="loginForm">
+                        <div class="auth-fields-grid">
+                            <div class="form-control-wrap">
+                                <label for="loginId">Institutional ID or Email <span class="req" style="color: var(--rose);">*</span></label>
+                                <input type="text" id="loginId" placeholder="e.g. STU-303, ADM-101 or student@mits.ac.in" required autocomplete="username">
+                            </div>
+
+                            <div class="form-control-wrap">
+                                <label for="loginPassword">Password <span class="req" style="color: var(--rose);">*</span></label>
+                                <div class="password-field-wrapper">
+                                    <input type="password" id="loginPassword" placeholder="Enter account password" required autocomplete="current-password">
+                                    <button type="button" class="toggle-password-btn" data-target="loginPassword" title="Toggle password visibility">&#128065;</button>
+                                </div>
+                            </div>
+
+                            <div class="form-control-wrap span-2">
+                                <label for="loginRole">Account Role (Optional / Auto-detected from ID)</label>
+                                <select id="loginRole">
+                                    <option value="auto">Auto-Detect Role from Account</option>
+                                    <option value="student">Student / Attendee (Strict Protected View-Only)</option>
+                                    <option value="organizer">Faculty Event Organizer (Scheduling &amp; Editing)</option>
+                                    <option value="admin">Campus Administrator (Full Control &amp; System Reset)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="auth-checkbox-row">
+                            <label>
+                                <input type="checkbox" id="rememberMe" checked>
+                                <span>Remember my session on this device</span>
+                            </label>
+                            <span style="font-size: 0.8rem; color: var(--text-tertiary);">Demo passwords: <code>student123</code>, <code>organizer123</code>, <code>admin123</code></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary auth-submit-btn">
+                            Log In &amp; Enter Dashboard &rarr;
+                        </button>
+                    </form>
+                </div>
+
+                <!-- TAB PANE 2: Sign Up / Registration Form -->
+                <div id="signupTabPane" class="auth-pane hidden">
+                    <form id="signupForm">
+                        <div class="auth-fields-grid">
+                            <div class="form-control-wrap">
+                                <label for="signupName">Full Name <span class="req" style="color: var(--rose);">*</span></label>
+                                <input type="text" id="signupName" placeholder="e.g. Aalekh Kaushik" required>
+                            </div>
+
+                            <div class="form-control-wrap">
+                                <label for="signupId">Institutional ID / Roll No. <span class="req" style="color: var(--rose);">*</span></label>
+                                <input type="text" id="signupId" placeholder="e.g. STU-405 or 0901CS221001" required>
+                            </div>
+
+                            <div class="form-control-wrap">
+                                <label for="signupEmail">Institutional Email <span class="req" style="color: var(--rose);">*</span></label>
+                                <input type="email" id="signupEmail" placeholder="e.g. yourname@mits.ac.in" required>
+                            </div>
+
+                            <div class="form-control-wrap">
+                                <label for="signupRole">Desired Account Role <span class="req" style="color: var(--rose);">*</span></label>
+                                <select id="signupRole" required>
+                                    <option value="student" selected>Student / Attendee (Protected View-Only)</option>
+                                    <option value="organizer">Faculty Event Organizer</option>
+                                    <option value="admin">Campus Administrator</option>
+                                </select>
+                            </div>
+
+                            <div class="form-control-wrap">
+                                <label for="signupPassword">Password <span class="req" style="color: var(--rose);">*</span></label>
+                                <div class="password-field-wrapper">
+                                    <input type="password" id="signupPassword" placeholder="Create password (min 4 chars)" minlength="4" required autocomplete="new-password">
+                                    <button type="button" class="toggle-password-btn" data-target="signupPassword" title="Toggle password visibility">&#128065;</button>
+                                </div>
+                            </div>
+
+                            <div class="form-control-wrap">
+                                <label for="signupConfirmPassword">Confirm Password <span class="req" style="color: var(--rose);">*</span></label>
+                                <div class="password-field-wrapper">
+                                    <input type="password" id="signupConfirmPassword" placeholder="Re-type password" minlength="4" required autocomplete="new-password">
+                                    <button type="button" class="toggle-password-btn" data-target="signupConfirmPassword" title="Toggle password visibility">&#128065;</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                            &#128737;&#65039; Note: Your new account credentials will be saved in your browser storage for ongoing access.
+                        </div>
+
+                        <button type="submit" class="btn btn-primary auth-submit-btn">
+                            Create Account &amp; Proceed to Dashboard &rarr;
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Quick 1-Click Role Login Cards Section -->
+            <section id="rolesSection">
+                <div class="login-section-title">&#128101; Or Choose a Pre-Configured Test Account (1-Click Login)</div>
+                <div class="role-cards-grid">
+                    <!-- Admin Card -->
+                    <div class="role-card role-admin">
+                        <div>
+                            <div class="role-card-header">
+                                <div class="role-card-icon">&#128737;&#65039;</div>
+                                <div class="role-card-title">
+                                    <h3>Campus Admin</h3>
+                                    <span class="role-access-tag">Full Managerial Access</span>
+                                </div>
+                            </div>
+                            <div class="role-credentials-box">
+                                <div class="role-cred-row">
+                                    <span class="role-cred-label">Login ID:</span>
+                                    <span class="role-cred-val">ADM-101</span>
+                                </div>
+                                <div class="role-cred-row">
+                                    <span class="role-cred-label">Password:</span>
+                                    <span class="role-cred-val">admin123</span>
+                                </div>
+                                <div class="role-cred-row">
+                                    <span class="role-cred-label">Email:</span>
+                                    <span class="role-cred-val">admin@mits.ac.in</span>
+                                </div>
+                            </div>
+                            <ul class="role-features-list">
+                                <li>&#10004; Add &amp; schedule new campus events</li>
+                                <li>&#10004; Edit &amp; update any event listing</li>
+                                <li>&#10004; Delete records &amp; database reset</li>
+                                <li>&#10004; Export full CSV directory</li>
+                            </ul>
+                        </div>
+                        <button type="button" class="btn-login-card" onclick="quickLogin('admin')">
+                            Log In as Administrator &rarr;
+                        </button>
+                    </div>
+
+                    <!-- Organizer Card -->
+                    <div class="role-card role-organizer">
+                        <div>
+                            <div class="role-card-header">
+                                <div class="role-card-icon">&#128197;</div>
+                                <div class="role-card-title">
+                                    <h3>Event Organizer</h3>
+                                    <span class="role-access-tag">Organizer Privileges</span>
+                                </div>
+                            </div>
+                            <div class="role-credentials-box">
+                                <div class="role-cred-row">
+                                    <span class="role-cred-label">Login ID:</span>
+                                    <span class="role-cred-val">ORG-202</span>
+                                </div>
+                                <div class="role-cred-row">
+                                    <span class="role-cred-label">Password:</span>
+                                    <span class="role-cred-val">organizer123</span>
+                                </div>
+                                <div class="role-cred-row">
+                                    <span class="role-cred-label">Email:</span>
+                                    <span class="role-cred-val">organizer.cse@mits.ac.in</span>
+                                </div>
+                            </div>
+                            <ul class="role-features-list">
+                                <li>&#10004; Create and schedule department events</li>
+                                <li>&#10004; Edit &amp; manage event specifications</li>
+                                <li>&#10004; View participants and capacity</li>
+                                <li class="prohibited">&#10006; Restricted system reset &amp; purge</li>
+                            </ul>
+                        </div>
+                        <button type="button" class="btn-login-card" onclick="quickLogin('organizer')">
+                            Log In as Organizer &rarr;
+                        </button>
+                    </div>
+
+                    <!-- Student / User Card -->
+                    <div class="role-card role-student">
+                        <div>
+                            <div class="role-card-header">
+                                <div class="role-card-icon">&#127891;</div>
+                                <div class="role-card-title">
+                                    <h3>Student / Attendee</h3>
+                                    <span class="role-access-tag">View-Only Directory</span>
+                                </div>
+                            </div>
+                            <div class="role-credentials-box">
+                                <div class="role-cred-row">
+                                    <span class="role-cred-label">Login ID:</span>
+                                    <span class="role-cred-val">STU-303</span>
+                                </div>
+                                <div class="role-cred-row">
+                                    <span class="role-cred-label">Password:</span>
+                                    <span class="role-cred-val">student123</span>
+                                </div>
+                                <div class="role-cred-row">
+                                    <span class="role-cred-label">Email:</span>
+                                    <span class="role-cred-val">student.cse@mits.ac.in</span>
+                                </div>
+                            </div>
+                            <ul class="role-features-list">
+                                <li>&#10004; Search, filter, and view event schedules</li>
+                                <li>&#10004; View complete event and venue details</li>
+                                <li>&#10004; 1-Click Pass Reservation</li>
+                                <li class="prohibited">&#10006; Misuse protected: Cannot add/edit/delete</li>
+                            </ul>
+                        </div>
+                        <button type="button" class="btn-login-card" onclick="quickLogin('student')">
+                            Log In as Student / User &rarr;
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Highlights Section -->
+            <section id="featuresSection" class="home-features-section">
+                <div class="home-section-header">
+                    <h2>Engineered for Campus Collaboration</h2>
+                    <p>EventSphere brings enterprise-level event operations to students, faculty, and academic departments.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-box">
+                        <div class="feature-box-icon" style="background: var(--amber-light); color: var(--amber);">&#128737;&#65039;</div>
+                        <h4>Misuse Prevention Architecture</h4>
+                        <p>Strict role boundaries protect the event schedule. Students enjoy seamless access while prohibited from modifying faculty records.</p>
+                    </div>
+                    <div class="feature-box">
+                        <div class="feature-box-icon" style="background: var(--emerald-light); color: var(--emerald);">&#128197;</div>
+                        <h4>Faculty Event Scheduling</h4>
+                        <p>Department coordinators can publish seminars, hackathons, and workshops with custom venue allocation and seat caps.</p>
+                    </div>
+                    <div class="feature-box">
+                        <div class="feature-box-icon" style="background: var(--primary-light); color: var(--primary);">&#127915;</div>
+                        <h4>1-Click Pass Booking</h4>
+                        <p>Instant seat registration with real-time pass issuance and persistent local browser synchronization.</p>
+                    </div>
+                    <div class="feature-box">
+                        <div class="feature-box-icon" style="background: var(--purple-light); color: var(--purple);">&#128190;</div>
+                        <h4>Institutional CSV Export</h4>
+                        <p>Generate formatted CSV reports ready for NAAC audits, departmental archiving, and academic documentation.</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Login Footer -->
+        <footer class="app-footer" style="background: transparent; border: none; padding-top: 1.5rem; margin-top: auto;">
+            <div class="footer-content" style="color: var(--text-tertiary); max-width: 1120px; margin: 0 auto; padding: 1.5rem 0; border-top: 1px solid var(--border);">
+                <div>EventSphere &bull; Developed by <strong>Aalekh Kaushik</strong> (B.Tech CSE, MITS Gwalior)</div>
+                <div>&copy; 2026 Department of Computer Science &amp; Engineering &bull; MITS Gwalior</div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toastNotification" class="toast-box">Notification message</div>
+
+    <!-- Auth Script -->
+    <script src="auth.js"></script>
+</body>
+
+</html>
